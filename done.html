@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شرح كود FastAPI</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6fb;
+            color: #222;
+            padding-bottom: 50px;
+        }
+
+        header {
+            background: linear-gradient(90deg, #5f42d8, #9c35d1);
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        header h1 {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 25px;
+        }
+
+        .btn-back {
+            background: #653bd3;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-back:hover {
+            background: #502bb5;
+            box-shadow: 0 5px 15px rgba(101, 59, 211, 0.3);
+        }
+
+        .card {
+            background: white;
+            border-radius: 18px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h2 {
+            color: #5f42d8;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #444;
+            margin-bottom: 15px;
+        }
+
+        pre {
+            background: #1a1a1a;
+            color: #ffffff;
+            padding: 18px;
+            border-radius: 12px;
+            direction: ltr;
+            text-align: left;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>شرح كود نظام التسجيل</h1>
+        <p>في هذه الصفحة نشرح كيفية عمل صفحة التسجيل والـ API باستعمال FastAPI وتخزين البيانات في CSV.</p>
+    </header>
+
+    <div class="container">
+
+        <div class="btn-container">
+            <a href="/" class="btn-back">العودة إلى صفحة التسجيل</a>
+        </div>
+
+        <div class="card">
+            <h2>1. استيراد المكتبات (Imports)</h2>
+            <p>نستورد مكتبة FastAPI لإنشاء السيرفر، وForm لاستقبال بيانات الاستمارة، وFileResponse لإرجاع هذه الصفحة، ومكتبة csv للتعامل مع ملف البيانات.</p>
+            <pre>from fastapi import FastAPI, Form
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+import csv</pre>
+        </div>
+
+        <div class="card">
+            <h2>2. إنشاء تطبيق FastAPI وإعداد CORS</h2>
+            <p>نقوم بإنشاء التطبيق وتفعيل إعدادات السماح (CORS) لتمكين المتصفح من إرسال الطلبات للسيرفر من أي مصدر دون مشاكل أمان.</p>
+            <pre>app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)</pre>
+        </div>
+
+        <div class="card">
+            <h2>3. إنشاء مسار التسجيل (POST Endpoint)</h2>
+            <p>نحدد المسار <code>/register</code> باستقبال طلبات POST لاستقبال بيانات المدخلات من استمارة HTML بنجاح.</p>
+            <pre>@app.post("/register")
+async def register(
+    full_name: str = Form(...),
+    phone: int = Form(...),
+    email: str = Form(...),
+    password: int = Form(...),
+    city: str = Form(...)
+):</pre>
+        </div>
+
+        <div class="card">
+            <h2>4. حفظ البيانات داخل ملف CSV</h2>
+            <p>نفتح الملف <code>users.csv</code> للإضافة، ونتحقق إن كان الملف فارغاً لنكتب العناوين (Headers) أولاً ثم نضيف صف البيانات الجديد.</p>
+            <pre>headers = ["Name", "Phone", "Email", "Password", "City"]
+user_data = [full_name, phone, email, password, city]
+
+with open("users.csv", mode="a", newline="", encoding="utf-8-sig") as file:
+    writer = csv.writer(file)
+
+    if file.tell() == 0:
+        writer.writerow(headers)
+
+    writer.writerow(user_data)</pre>
+        </div>
+
+        <div class="card">
+            <h2>5. إرجاع الصفحة وتأكيد الحفظ</h2>
+            <p>بعد حفظ البيانات، نطبّع رسالة تأكيد بالـ Terminal ونعيد ملف <code>done.html</code> ليظهر للمستخدم مباشرة.</p>
+            <pre>print("The data has been successfully saved to the users.csv file!")
+
+return FileResponse("done.html")</pre>
+        </div>
+
+        <div class="card">
+            <h2>6. أمر تشغيل السيرفر (Terminal Command)</h2>
+            <p>لتشغيل التطبيق عبر السيرفر المحلي uvicorn وإعادة التشغيل التلقائي عند التعديل:</p>
+            <pre>python -m uvicorn ahmad:app --reload</pre>
+        </div>
+
+    </div>
+
+</body>
+
+</html>
